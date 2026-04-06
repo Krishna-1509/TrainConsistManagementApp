@@ -1,56 +1,67 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
-// PassengerBogie class
-class PassengerBogie {
-    private String bogieId;
-    private int capacity;
+class Bogie {
+    String name;
+    int capacity;
 
-    public PassengerBogie(String bogieId, int capacity) {
-        this.bogieId = bogieId;
+    public Bogie(String name, int capacity) {
+        this.name = name;
         this.capacity = capacity;
-    }
-
-    public String getBogieId() {
-        return bogieId;
-    }
-
-    public int getCapacity() {
-        return capacity;
     }
 
     @Override
     public String toString() {
-        return bogieId + " - Capacity: " + capacity;
+        return name + " (Capacity: " + capacity + ")";
     }
 }
 
-// Comparator to sort by capacity
-class CapacityComparator implements Comparator<PassengerBogie> {
-    @Override
-    public int compare(PassengerBogie b1, PassengerBogie b2) {
-        return Integer.compare(b1.getCapacity(), b2.getCapacity());
-    }
-}
-
-// Main Application
 public class TrainConsistManagementApp {
 
-    public static List<PassengerBogie> sortBogiesByCapacity(List<PassengerBogie> bogies) {
-        Collections.sort(bogies, new CapacityComparator());
-        return bogies;
+    // ================= UC8 =================
+    // Filter Passenger Bogies using Streams
+    public static List<Bogie> filterHighCapacityBogies(List<Bogie> bogies) {
+        return bogies.stream()
+                .filter(b -> b.capacity > 70)
+                .collect(Collectors.toList());
     }
 
-    // Optional manual run
+    // ================= UC9 =================
+    // Group Bogies by Type using Streams
+    public static Map<String, List<Bogie>> groupBogiesByType(List<Bogie> bogies) {
+        return bogies.stream()
+                .collect(Collectors.groupingBy(b -> b.name));
+    }
+
+    // ================= MAIN METHOD =================
     public static void main(String[] args) {
-        List<PassengerBogie> bogies = new ArrayList<>();
-        bogies.add(new PassengerBogie("B1", 80));
-        bogies.add(new PassengerBogie("B2", 60));
-        bogies.add(new PassengerBogie("B3", 100));
 
-        sortBogiesByCapacity(bogies);
+        List<Bogie> bogies = new ArrayList<>();
 
-        for (PassengerBogie b : bogies) {
-            System.out.println(b);
-        }
+        bogies.add(new Bogie("Sleeper", 80));
+        bogies.add(new Bogie("AC Chair", 70));
+        bogies.add(new Bogie("First Class", 50));
+        bogies.add(new Bogie("Sleeper", 75));
+        bogies.add(new Bogie("AC Chair", 90));
+
+        // ===== Display Original List =====
+        System.out.println("Original Bogie List:");
+        bogies.forEach(System.out::println);
+
+        // ================= UC8 OUTPUT =================
+        System.out.println("\n--- Filtered Bogies (Capacity > 70) ---");
+
+        List<Bogie> filteredBogies = filterHighCapacityBogies(bogies);
+        filteredBogies.forEach(System.out::println);
+
+        // ================= UC9 OUTPUT =================
+        System.out.println("\n--- Grouped Bogies By Type ---");
+
+        Map<String, List<Bogie>> groupedBogies = groupBogiesByType(bogies);
+
+        groupedBogies.forEach((type, list) -> {
+            System.out.println(type + " :");
+            list.forEach(b -> System.out.println("   " + b));
+        });
     }
 }
