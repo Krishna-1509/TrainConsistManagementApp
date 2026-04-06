@@ -1,9 +1,9 @@
 import java.util.*;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 import java.util.stream.Collectors;
 
 // =====================================================
-// UC14 : CUSTOM EXCEPTION
+// UC14 : CUSTOM EXCEPTION (Checked)
 // =====================================================
 class InvalidCapacityException extends Exception {
     public InvalidCapacityException(String message) {
@@ -12,26 +12,39 @@ class InvalidCapacityException extends Exception {
 }
 
 // =====================================================
-// PASSENGER BOGIE (UC14)
+// UC15 : CUSTOM RUNTIME EXCEPTION
+// =====================================================
+class CargoSafetyException extends RuntimeException {
+    public CargoSafetyException(String message) {
+        super(message);
+    }
+}
+
+// =====================================================
+// PASSENGER BOGIE
 // =====================================================
 class PassengerBogie {
     private String type;
     private int capacity;
 
     public PassengerBogie(String type, int capacity) throws InvalidCapacityException {
-        if (capacity <= 0) {
+        if (capacity <= 0)
             throw new InvalidCapacityException("Capacity must be greater than zero");
-        }
         this.type = type;
         this.capacity = capacity;
     }
 
     public String getType() { return type; }
     public int getCapacity() { return capacity; }
+
+    @Override
+    public String toString() {
+        return type + " - Capacity: " + capacity;
+    }
 }
 
 // =====================================================
-// GOODS BOGIE (UC12 + UC13)
+// GOODS BOGIE
 // =====================================================
 class GoodsBogie {
     private String type;
@@ -48,6 +61,25 @@ class GoodsBogie {
     public String getCargo() { return cargo; }
     public int getCapacity() { return capacity; }
 
+    // UC15 Safe cargo assignment
+    public void assignCargo(String newCargo) {
+        try {
+            if (type.equalsIgnoreCase("Rectangular") &&
+                    newCargo.equalsIgnoreCase("Petroleum")) {
+                throw new CargoSafetyException("Rectangular bogie cannot carry Petroleum!");
+            }
+
+            this.cargo = newCargo;
+            System.out.println("Cargo assigned successfully: " + newCargo);
+
+        } catch (CargoSafetyException e) {
+            System.out.println("ERROR: " + e.getMessage());
+
+        } finally {
+            System.out.println("Cargo assignment attempt completed.");
+        }
+    }
+
     @Override
     public String toString() {
         return type + " - " + cargo + " - " + capacity;
@@ -55,118 +87,100 @@ class GoodsBogie {
 }
 
 // =====================================================
-// MAIN APP
+// MAIN APPLICATION
 // =====================================================
 public class TrainConsistManagementApp {
 
-    // =====================================================
-    // UC11 : REGEX VALIDATION
-    // =====================================================
-    public static boolean validateTrainID(String trainId) {
-        return Pattern.matches("TRN-\\d{4}", trainId);
+    // UC11 Regex Validation Methods
+    public static boolean validateTrainID(String trainID) {
+        return Pattern.matches("TRN-\\d{4}", trainID);
     }
 
-    public static boolean validateCargoCode(String cargoCode) {
-        return Pattern.matches("PET-[A-Z]{2}", cargoCode);
+    public static boolean validateCargoCode(String code) {
+        return Pattern.matches("PET-[A-Z]{2}", code);
     }
 
-    // =====================================================
-    // UC12 : SAFETY VALIDATION USING STREAMS
-    // =====================================================
-    public static boolean isTrainSafe(List<GoodsBogie> bogies) {
-        return bogies.stream()
-                .allMatch(b ->
-                        !b.getType().equalsIgnoreCase("Cylindrical") ||
-                                b.getCargo().equalsIgnoreCase("Petroleum")
-                );
-    }
+    public static void main(String[] args) throws Exception {
 
-    // =====================================================
-    // UC13 : LOOP FILTERING
-    // =====================================================
-    public static List<GoodsBogie> filterUsingLoop(List<GoodsBogie> bogies) {
-        List<GoodsBogie> result = new ArrayList<>();
-        for (GoodsBogie b : bogies) {
-            if (b.getCapacity() > 60) {
-                result.add(b);
-            }
-        }
-        return result;
-    }
+        System.out.println("Train Consist Management App Running...\n");
 
-    // =====================================================
-    // UC13 : STREAM FILTERING
-    // =====================================================
-    public static List<GoodsBogie> filterUsingStream(List<GoodsBogie> bogies) {
-        return bogies.stream()
-                .filter(b -> b.getCapacity() > 60)
-                .collect(Collectors.toList());
-    }
+        // =====================================================
+        // CREATE PASSENGER BOGIES
+        // =====================================================
+        List<PassengerBogie> passengers = new ArrayList<>();
+        passengers.add(new PassengerBogie("Sleeper", 72));
+        passengers.add(new PassengerBogie("AC Chair", 60));
+        passengers.add(new PassengerBogie("First Class", 40));
+        passengers.add(new PassengerBogie("Sleeper", 70));
 
-    // =====================================================
-    // UC13 : PERFORMANCE BENCHMARK
-    // =====================================================
-    public static long measureLoopTime(List<GoodsBogie> bogies) {
-        long start = System.nanoTime();
-        filterUsingLoop(bogies);
-        long end = System.nanoTime();
-        return end - start;
-    }
+        // =====================================================
+        // UC9 : GROUPING
+        // =====================================================
+        System.out.println("UC9 : Grouping Bogies");
+        Map<String, List<PassengerBogie>> grouped =
+                passengers.stream().collect(Collectors.groupingBy(PassengerBogie::getType));
+        grouped.forEach((k,v) -> System.out.println(k + " -> " + v));
 
-    public static long measureStreamTime(List<GoodsBogie> bogies) {
-        long start = System.nanoTime();
-        filterUsingStream(bogies);
-        long end = System.nanoTime();
-        return end - start;
-    }
+        // =====================================================
+        // UC10 : REDUCE TOTAL SEATS
+        // =====================================================
+        int totalSeats = passengers.stream()
+                .map(PassengerBogie::getCapacity)
+                .reduce(0, Integer::sum);
+        System.out.println("\nUC10 : Total Seats = " + totalSeats);
 
-    // =====================================================
-    // MAIN METHOD (Console Demo)
-    // =====================================================
-    public static void main(String[] args) {
-
-        System.out.println("===== TRAIN CONSIST MANAGEMENT APP =====");
-
-        // ---------------- UC11 DEMO ----------------
+        // =====================================================
+        // UC11 : REGEX VALIDATION
+        // =====================================================
         System.out.println("\nUC11 : Regex Validation");
-        String trainId = "TRN-1234";
-        String cargoCode = "PET-AB";
+        System.out.println("TRN-1234 valid? " + validateTrainID("TRN-1234"));
+        System.out.println("PET-AB valid? " + validateCargoCode("PET-AB"));
 
-        System.out.println("Train ID valid: " + validateTrainID(trainId));
-        System.out.println("Cargo Code valid: " + validateCargoCode(cargoCode));
-
-        // ---------------- UC12 DEMO ----------------
-        System.out.println("\nUC12 : Safety Validation");
-        List<GoodsBogie> bogies = Arrays.asList(
-                new GoodsBogie("Cylindrical", "Petroleum", 80),
-                new GoodsBogie("Open", "Coal", 70),
-                new GoodsBogie("Box", "Grain", 65)
+        // =====================================================
+        // UC12 : SAFETY CHECK using allMatch
+        // =====================================================
+        List<GoodsBogie> goods = List.of(
+                new GoodsBogie("Cylindrical","Petroleum",80),
+                new GoodsBogie("Rectangular","Coal",70)
         );
 
-        boolean safe = isTrainSafe(bogies);
-        System.out.println("Train Safety Status: " + safe);
+        boolean safe = goods.stream().allMatch(b ->
+                !b.getType().equalsIgnoreCase("Cylindrical") ||
+                        b.getCargo().equalsIgnoreCase("Petroleum")
+        );
+        System.out.println("\nUC12 : Train Safety = " + safe);
 
-        // ---------------- UC13 DEMO ----------------
-        System.out.println("\nUC13 : Performance Comparison");
-        long loopTime = measureLoopTime(bogies);
-        long streamTime = measureStreamTime(bogies);
+        // =====================================================
+        // UC13 : PERFORMANCE (Loop vs Stream)
+        // =====================================================
+        System.out.println("\nUC13 : Performance Test");
 
-        System.out.println("Loop Time (ns): " + loopTime);
-        System.out.println("Stream Time (ns): " + streamTime);
+        long startLoop = System.nanoTime();
+        List<PassengerBogie> loopFiltered = new ArrayList<>();
+        for (PassengerBogie b : passengers)
+            if (b.getCapacity() > 60) loopFiltered.add(b);
+        long endLoop = System.nanoTime();
 
-        // ---------------- UC14 DEMO ----------------
-        System.out.println("\nUC14 : Custom Exception Demo");
-        try {
-            PassengerBogie b1 = new PassengerBogie("Sleeper", 72);
-            System.out.println("Passenger Bogie Created: " + b1.getType());
-        } catch (InvalidCapacityException e) {
-            System.out.println(e.getMessage());
-        }
+        long startStream = System.nanoTime();
+        List<PassengerBogie> streamFiltered = passengers.stream()
+                .filter(b -> b.getCapacity() > 60)
+                .collect(Collectors.toList());
+        long endStream = System.nanoTime();
 
-        try {
-            PassengerBogie b2 = new PassengerBogie("AC Chair", -5);
-        } catch (InvalidCapacityException e) {
-            System.out.println("Exception: " + e.getMessage());
-        }
+        System.out.println("Loop Time : " + (endLoop - startLoop));
+        System.out.println("Stream Time : " + (endStream - startStream));
+
+        // =====================================================
+        // UC15 : SAFE CARGO ASSIGNMENT
+        // =====================================================
+        System.out.println("\nUC15 : Safe Cargo Assignment");
+
+        GoodsBogie rect = new GoodsBogie("Rectangular","Coal",70);
+        GoodsBogie cyl = new GoodsBogie("Cylindrical","Oil",80);
+
+        cyl.assignCargo("Petroleum");   // safe
+        rect.assignCargo("Petroleum");  // unsafe handled
+
+        System.out.println("\nApplication finished successfully.");
     }
 }
