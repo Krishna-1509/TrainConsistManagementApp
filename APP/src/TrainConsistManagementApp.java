@@ -1,54 +1,88 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
-class Cargo {
-    String cargoId;
-    int weight;
-    boolean isHazardous;
+class Bogie {
+    String id;
+    int capacity;
 
-    Cargo(String cargoId, int weight, boolean isHazardous) {
-        this.cargoId = cargoId;
-        this.weight = weight;
-        this.isHazardous = isHazardous;
+    Bogie(String id, int capacity) {
+        this.id = id;
+        this.capacity = capacity;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public String toString() {
+        return id + " (" + capacity + ")";
     }
 }
 
 public class TrainConsistManagementApp {
 
-    private static final int MAX_WEIGHT_PER_WAGON = 100;
+    // Create dataset of bogies
+    public static List<Bogie> createBogies(int size) {
+        List<Bogie> bogies = new ArrayList<>();
+        Random rand = new Random();
 
-    public static String assignCargoSafely(String cargoId, int weight, boolean isHazardous) {
-        try {
-            if (cargoId == null || cargoId.isEmpty()) {
-                throw new IllegalArgumentException("Cargo ID cannot be empty");
-            }
-
-            if (weight <= 0) {
-                throw new IllegalArgumentException("Weight must be positive");
-            }
-
-            if (weight > MAX_WEIGHT_PER_WAGON) {
-                throw new Exception("Cargo exceeds wagon capacity");
-            }
-
-            if (isHazardous) {
-                return "Hazardous cargo assigned to special wagon";
-            }
-
-            return "Cargo assigned successfully";
-
-        } catch (IllegalArgumentException e) {
-            return "Invalid cargo details: " + e.getMessage();
-        } catch (Exception e) {
-            return "Assignment failed: " + e.getMessage();
-        } finally {
-            System.out.println("Cargo assignment attempted.");
+        for (int i = 1; i <= size; i++) {
+            int capacity = rand.nextInt(100) + 1; // 1–100
+            bogies.add(new Bogie("B" + i, capacity));
         }
+        return bogies;
+    }
+
+    // LOOP BASED FILTERING
+    public static List<Bogie> filterUsingLoop(List<Bogie> bogies) {
+        List<Bogie> result = new ArrayList<>();
+        for (Bogie b : bogies) {
+            if (b.getCapacity() > 60) {
+                result.add(b);
+            }
+        }
+        return result;
+    }
+
+    // STREAM BASED FILTERING
+    public static List<Bogie> filterUsingStream(List<Bogie> bogies) {
+        return bogies.stream()
+                .filter(b -> b.getCapacity() > 60)
+                .collect(Collectors.toList());
+    }
+
+    // LOOP BENCHMARK
+    public static long measureLoopTime(List<Bogie> bogies) {
+        long start = System.nanoTime();
+        filterUsingLoop(bogies);
+        long end = System.nanoTime();
+        return end - start;
+    }
+
+    // STREAM BENCHMARK
+    public static long measureStreamTime(List<Bogie> bogies) {
+        long start = System.nanoTime();
+        filterUsingStream(bogies);
+        long end = System.nanoTime();
+        return end - start;
     }
 
     public static void main(String[] args) {
-        System.out.println(assignCargoSafely("C101", 50, false));
-        System.out.println(assignCargoSafely("C102", 120, false));
-        System.out.println(assignCargoSafely("", 40, false));
-        System.out.println(assignCargoSafely("C103", 60, true));
+
+        // Create large dataset
+        List<Bogie> bogies = createBogies(100000);
+
+        long loopTime = measureLoopTime(bogies);
+        long streamTime = measureStreamTime(bogies);
+
+        System.out.println("Loop filtering time (ns): " + loopTime);
+        System.out.println("Stream filtering time (ns): " + streamTime);
+
+        // Verify results are same
+        List<Bogie> loopResult = filterUsingLoop(bogies);
+        List<Bogie> streamResult = filterUsingStream(bogies);
+
+        System.out.println("Loop Result Size: " + loopResult.size());
+        System.out.println("Stream Result Size: " + streamResult.size());
     }
 }
