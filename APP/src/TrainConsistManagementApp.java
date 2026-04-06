@@ -1,4 +1,13 @@
 import java.util.*;
+class Bogie {
+    String name;
+    int capacity;
+
+    Bogie(String name, int capacity) {
+        this.name = name;
+        this.capacity = capacity;
+    }
+}
 
 public class TrainConsistApp {
 
@@ -72,6 +81,24 @@ public class TrainConsistApp {
 
         for (Map.Entry<String, Integer> entry : bogieCapacity.entrySet()) {
             System.out.println(entry.getKey() + " Capacity: " + entry.getValue());
+        }
+        // ==============================
+// UC7 → Sort Bogies by Capacity using Comparator
+// ==============================
+        System.out.println("\nSorting Bogies by Capacity...");
+
+        List<Bogie> bogieList = new ArrayList<>();
+
+        bogieList.add(new Bogie("Sleeper", 72));
+        bogieList.add(new Bogie("AC Chair", 56));
+        bogieList.add(new Bogie("First Class", 24));
+
+// Sort using Comparator + Lambda
+        bogieList.sort(Comparator.comparingInt(b -> b.capacity));
+
+// Display sorted list
+        for (Bogie b : bogieList) {
+            System.out.println(b.name + " - Capacity: " + b.capacity);
         }
     }
 }
