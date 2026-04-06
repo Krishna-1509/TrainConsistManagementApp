@@ -1,79 +1,67 @@
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TrainConsistManagementApp {
+class Bogie {
+    String name;
+    int capacity;
 
-    // ===== Bogie Class =====
-    static class Bogie {
-        String name;
-        int capacity;
-
-        Bogie(String name, int capacity) {
-            this.name = name;
-            this.capacity = capacity;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public int getCapacity() {
-            return capacity;
-        }
-
-        @Override
-        public String toString() {
-            return name + " (" + capacity + " seats)";
-        }
+    public Bogie(String name, int capacity) {
+        this.name = name;
+        this.capacity = capacity;
     }
 
+    @Override
+    public String toString() {
+        return name + " (Capacity: " + capacity + ")";
+    }
+}
+
+public class TrainConsistManagementApp {
+
     // ================= UC8 =================
-    // Filter Passenger Bogies Using Streams
+    // Filter Passenger Bogies using Streams
     public static List<Bogie> filterHighCapacityBogies(List<Bogie> bogies) {
         return bogies.stream()
-                .filter(b -> b.capacity > 60)
+                .filter(b -> b.capacity > 70)
                 .collect(Collectors.toList());
     }
 
     // ================= UC9 =================
-    // Group Bogies by Type
+    // Group Bogies by Type using Streams
     public static Map<String, List<Bogie>> groupBogiesByType(List<Bogie> bogies) {
         return bogies.stream()
                 .collect(Collectors.groupingBy(b -> b.name));
     }
 
-    // ================= UC10 =================
-    // Count Total Seats using reduce()
-    public static int calculateTotalSeats(List<Bogie> bogies) {
-        return bogies.stream()
-                .map(b -> b.capacity)
-                .reduce(0, Integer::sum);
-    }
-
-    // ================= MAIN =================
+    // ================= MAIN METHOD =================
     public static void main(String[] args) {
 
         List<Bogie> bogies = new ArrayList<>();
-        bogies.add(new Bogie("Sleeper", 72));
-        bogies.add(new Bogie("AC Chair", 56));
-        bogies.add(new Bogie("First Class", 30));
-        bogies.add(new Bogie("Sleeper", 72));
 
-        // ---------- UC8 OUTPUT ----------
-        System.out.println("Filtered Bogies (>60 seats):");
-        List<Bogie> filtered = filterHighCapacityBogies(bogies);
-        filtered.forEach(System.out::println);
+        bogies.add(new Bogie("Sleeper", 80));
+        bogies.add(new Bogie("AC Chair", 70));
+        bogies.add(new Bogie("First Class", 50));
+        bogies.add(new Bogie("Sleeper", 75));
+        bogies.add(new Bogie("AC Chair", 90));
 
-        // ---------- UC9 OUTPUT ----------
-        System.out.println("\nGrouped Bogies:");
-        Map<String, List<Bogie>> grouped = groupBogiesByType(bogies);
-        grouped.forEach((type, list) -> {
-            System.out.println(type + " -> " + list);
+        // ===== Display Original List =====
+        System.out.println("Original Bogie List:");
+        bogies.forEach(System.out::println);
+
+        // ================= UC8 OUTPUT =================
+        System.out.println("\n--- Filtered Bogies (Capacity > 70) ---");
+
+        List<Bogie> filteredBogies = filterHighCapacityBogies(bogies);
+        filteredBogies.forEach(System.out::println);
+
+        // ================= UC9 OUTPUT =================
+        System.out.println("\n--- Grouped Bogies By Type ---");
+
+        Map<String, List<Bogie>> groupedBogies = groupBogiesByType(bogies);
+
+        groupedBogies.forEach((type, list) -> {
+            System.out.println(type + " :");
+            list.forEach(b -> System.out.println("   " + b));
         });
-
-        // ---------- UC10 OUTPUT ----------
-        System.out.println("\nTotal Seating Capacity:");
-        int totalSeats = calculateTotalSeats(bogies);
-        System.out.println("Total Seats in Train = " + totalSeats);
     }
 }

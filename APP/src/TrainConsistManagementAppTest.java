@@ -4,63 +4,99 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TrainConsistManagementAppTest {
 
-    private List<TrainConsistManagementApp.Bogie> createSampleBogies() {
-        List<TrainConsistManagementApp.Bogie> bogies = new ArrayList<>();
-        bogies.add(new TrainConsistManagementApp.Bogie("Sleeper", 72));
-        bogies.add(new TrainConsistManagementApp.Bogie("AC Chair", 56));
-        bogies.add(new TrainConsistManagementApp.Bogie("First Class", 30));
+    // Helper method to create sample bogie list
+    private List<Bogie> createSampleBogies() {
+        List<Bogie> bogies = new ArrayList<>();
+        bogies.add(new Bogie("Sleeper", 80));
+        bogies.add(new Bogie("AC Chair", 70));
+        bogies.add(new Bogie("First Class", 50));
+        bogies.add(new Bogie("Sleeper", 75));
         return bogies;
     }
 
-    // ================= UC10 TEST CASES =================
-
+    // 1️⃣ Bogies grouped correctly by type
     @Test
-    void testReduce_TotalSeatCalculation() {
-        List<TrainConsistManagementApp.Bogie> bogies = createSampleBogies();
-        int total = TrainConsistManagementApp.calculateTotalSeats(bogies);
-        assertEquals(158, total);
+    void testGrouping_BogiesGroupedByType() {
+        Map<String, List<Bogie>> result =
+                TrainConsistManagementApp.groupBogiesByType(createSampleBogies());
+
+        assertTrue(result.containsKey("Sleeper"));
+        assertTrue(result.containsKey("AC Chair"));
+        assertTrue(result.containsKey("First Class"));
     }
 
+    // 2️⃣ Multiple bogies in same group
     @Test
-    void testReduce_MultipleBogiesAggregation() {
-        List<TrainConsistManagementApp.Bogie> bogies = createSampleBogies();
-        int total = TrainConsistManagementApp.calculateTotalSeats(bogies);
-        assertTrue(total > 100);
+    void testGrouping_MultipleBogiesInSameGroup() {
+        Map<String, List<Bogie>> result =
+                TrainConsistManagementApp.groupBogiesByType(createSampleBogies());
+
+        assertEquals(2, result.get("Sleeper").size());
     }
 
+    // 3️⃣ Different bogie types separated
     @Test
-    void testReduce_SingleBogieCapacity() {
-        List<TrainConsistManagementApp.Bogie> bogies = new ArrayList<>();
-        bogies.add(new TrainConsistManagementApp.Bogie("Sleeper", 72));
-        int total = TrainConsistManagementApp.calculateTotalSeats(bogies);
-        assertEquals(72, total);
+    void testGrouping_DifferentBogieTypes() {
+        Map<String, List<Bogie>> result =
+                TrainConsistManagementApp.groupBogiesByType(createSampleBogies());
+
+        assertEquals(3, result.size());
     }
 
+    // 4️⃣ Empty bogie list
     @Test
-    void testReduce_EmptyBogieList() {
-        List<TrainConsistManagementApp.Bogie> bogies = new ArrayList<>();
-        int total = TrainConsistManagementApp.calculateTotalSeats(bogies);
-        assertEquals(0, total);
+    void testGrouping_EmptyBogieList() {
+        Map<String, List<Bogie>> result =
+                TrainConsistManagementApp.groupBogiesByType(new ArrayList<>());
+
+        assertTrue(result.isEmpty());
     }
 
+    // 5️⃣ Single category case
     @Test
-    void testReduce_CorrectCapacityExtraction() {
-        List<TrainConsistManagementApp.Bogie> bogies = createSampleBogies();
-        int total = TrainConsistManagementApp.calculateTotalSeats(bogies);
-        assertEquals(72 + 56 + 30, total);
+    void testGrouping_SingleBogieCategory() {
+        List<Bogie> list = new ArrayList<>();
+        list.add(new Bogie("Sleeper", 80));
+        list.add(new Bogie("Sleeper", 75));
+
+        Map<String, List<Bogie>> result =
+                TrainConsistManagementApp.groupBogiesByType(list);
+
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("Sleeper"));
     }
 
+    // 6️⃣ Map contains correct keys
     @Test
-    void testReduce_AllBogiesIncluded() {
-        List<TrainConsistManagementApp.Bogie> bogies = createSampleBogies();
-        int total = TrainConsistManagementApp.calculateTotalSeats(bogies);
-        assertEquals(158, total);
+    void testGrouping_MapContainsCorrectKeys() {
+        Map<String, List<Bogie>> result =
+                TrainConsistManagementApp.groupBogiesByType(createSampleBogies());
+
+        Set<String> keys = result.keySet();
+        assertTrue(keys.contains("Sleeper"));
+        assertTrue(keys.contains("AC Chair"));
+        assertTrue(keys.contains("First Class"));
     }
 
+    // 7️⃣ Group size validation
     @Test
-    void testReduce_OriginalListUnchanged() {
-        List<TrainConsistManagementApp.Bogie> bogies = createSampleBogies();
-        TrainConsistManagementApp.calculateTotalSeats(bogies);
-        assertEquals(3, bogies.size());
+    void testGrouping_GroupSizeValidation() {
+        Map<String, List<Bogie>> result =
+                TrainConsistManagementApp.groupBogiesByType(createSampleBogies());
+
+        assertEquals(2, result.get("Sleeper").size());
+        assertEquals(1, result.get("AC Chair").size());
+        assertEquals(1, result.get("First Class").size());
+    }
+
+    // 8️⃣ Original list unchanged
+    @Test
+    void testGrouping_OriginalListUnchanged() {
+        List<Bogie> original = createSampleBogies();
+        int originalSize = original.size();
+
+        TrainConsistManagementApp.groupBogiesByType(original);
+
+        assertEquals(originalSize, original.size());
     }
 }
